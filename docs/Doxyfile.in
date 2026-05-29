@@ -1,0 +1,36 @@
+# Doxyfile for @PROJECT_NAME@
+
+PROJECT_NAME           = "@PROJECT_NAME@"
+PROJECT_NUMBER         = "@PROJECT_VERSION@"
+PROJECT_BRIEF          = "Header-only C++23 SIMD-assisted IPv4/IPv6 text parser."
+OUTPUT_DIRECTORY       = "@CMAKE_BINARY_DIR@/docs"
+CREATE_SUBDIRS         = YES
+OUTPUT_LANGUAGE        = English
+INPUT                  = "@CMAKE_SOURCE_DIR@"
+FILE_PATTERNS          = *.hxx *.h *.cxx *.cpp *.md
+RECURSIVE              = YES
+EXCLUDE                = @CMAKE_BINARY_DIR@
+USE_MDFILE_AS_MAINPAGE = "@CMAKE_SOURCE_DIR@/README.md"
+
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+EXTRACT_LOCAL_CLASSES  = YES
+
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = NO
+WARN_NO_PARAMDOC       = NO
+QUIET                  = NO
+
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+GENERATE_LATEX         = NO
+
+INPUT_ENCODING         = UTF-8
+MARKDOWN_SUPPORT       = YES
+STRIP_FROM_PATH        = @CMAKE_SOURCE_DIR@
+EXTENSION_MAPPING      = hxx=C++ md=Markdown
+WARN_IF_DOC_ERROR      = NO
+SOURCE_BROWSER         = NO
+INLINE_SOURCES         = NO
+GENERATE_TAGFILE       = "@CMAKE_BINARY_DIR@/docs/tagfile.tag"

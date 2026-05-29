@@ -1,0 +1,10 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/VIPATargets.cmake")
+
+set_and_check(VIPA_INCLUDE_DIR "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
+set(VIPA_INCLUDE_DIRS "${VIPA_INCLUDE_DIR}")
+
+if(NOT TARGET llmx::vipa AND TARGET vipa)
+  add_library(llmx::vipa ALIAS vipa)
+endif()
