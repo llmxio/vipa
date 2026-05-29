@@ -10,6 +10,7 @@ INPUT                  = "@CMAKE_SOURCE_DIR@"
 FILE_PATTERNS          = *.hxx *.h *.cxx *.cpp *.md
 RECURSIVE              = YES
 EXCLUDE                = @CMAKE_BINARY_DIR@
+EXCLUDE_PATTERNS      = */build/* */build-*/* */_deps/*
 USE_MDFILE_AS_MAINPAGE = "@CMAKE_SOURCE_DIR@/README.md"
 
 EXTRACT_ALL            = YES
@@ -29,7 +30,7 @@ GENERATE_LATEX         = NO
 INPUT_ENCODING         = UTF-8
 MARKDOWN_SUPPORT       = YES
 STRIP_FROM_PATH        = @CMAKE_SOURCE_DIR@
-EXTENSION_MAPPING      = hxx=C++ md=Markdown
+EXTENSION_MAPPING      = hxx=C++
 WARN_IF_DOC_ERROR      = NO
 SOURCE_BROWSER         = NO
 INLINE_SOURCES         = NO

@@ -64,6 +64,11 @@ if(BUILD_TESTING)
   add_subdirectory(tests)
 endif()
 
+option(BUILD_BENCHMARKING "Enable benchmark targets" OFF)
+if(BUILD_BENCHMARKING)
+  add_subdirectory(benchmarks)
+endif()
+
 option(BUILD_DOCS "Enable generating API documentation (Doxygen)" OFF)
 if(BUILD_DOCS)
   find_package(Doxygen)

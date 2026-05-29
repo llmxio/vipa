@@ -53,6 +53,14 @@ cmake --build build
 ctest --test-dir build -V
 ```
 
+## Build And Benchmark
+
+```bash
+cmake -G Ninja -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_BENCHMARKING=ON
+cmake --build build --target vipa_benchmarks
+./build/vipa_benchmarks
+```
+
 ## Usage
 
 ```cpp
