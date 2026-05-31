@@ -9,6 +9,15 @@
 
 namespace llmx::vipa {
 
+/**
+ * @brief Parse an IPv4 or IPv6 text address.
+ *
+ * IPv4 parsing is attempted first. On success, the returned family identifies
+ * which variant member is stored in the result.
+ *
+ * @param text Address text to parse.
+ * @return Parsed address and family, or `std::nullopt` for malformed input.
+ */
 inline auto parse_address(std::string_view text) noexcept
     -> std::optional<ParseResult> {
   if (auto ipv4 = parse_ipv4(text)) {
