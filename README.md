@@ -76,6 +76,10 @@ if (parsed && parsed->family == llmx::vipa::AddressFamily::IPv6) {
 }
 ```
 
+## Credits
+
+This project is inspired by the work of Daniel Lemire and related tooling from <https://github.com/lemire>.
+
 ## Documentation
 
 Build the HTML API docs using Doxygen:
