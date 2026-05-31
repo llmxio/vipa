@@ -59,9 +59,10 @@ ctest --test-dir build -V
 ## Build And Benchmark
 
 ```bash
-cmake -G Ninja -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_BENCHMARKING=ON
-cmake --build build --target vipa_benchmarks
-./build/vipa_benchmarks
+cmake -G Ninja -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_BENCHMARKS=ON
+cmake --build build --target vipa_ipv4_benchmarks vipa_ipv6_benchmarks
+./build/benchmarks/vipa_ipv4_benchmarks
+./build/benchmarks/vipa_ipv6_benchmarks
 ```
 
 ## Usage

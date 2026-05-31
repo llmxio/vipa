@@ -13,14 +13,26 @@ FetchContent_MakeAvailable(benchmark)
 
 find_package(Threads REQUIRED)
 
-add_executable(vipa_benchmarks
-  benchmark_parser.cxx
+add_executable(vipa_ipv4_benchmarks
+  benchmark_ipv4.cxx
 )
 
-target_link_libraries(vipa_benchmarks PRIVATE
+target_link_libraries(vipa_ipv4_benchmarks PRIVATE
   llmx::vipa
   benchmark::benchmark
   Threads::Threads
 )
 
-target_compile_features(vipa_benchmarks PRIVATE cxx_std_23)
+target_compile_features(vipa_ipv4_benchmarks PRIVATE cxx_std_23)
+
+add_executable(vipa_ipv6_benchmarks
+  benchmark_ipv6.cxx
+)
+
+target_link_libraries(vipa_ipv6_benchmarks PRIVATE
+  llmx::vipa
+  benchmark::benchmark
+  Threads::Threads
+)
+
+target_compile_features(vipa_ipv6_benchmarks PRIVATE cxx_std_23)
