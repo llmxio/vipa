@@ -19,7 +19,7 @@ constexpr std::array<std::string_view, 8> kIPv6Inputs{
 
 } // namespace
 
-static void BM_ParseIPv6(benchmark::State& state) {
+static void BM_VipaIPv6(benchmark::State& state) {
   std::size_t index = 0;
   for (auto _ : state) {
     const auto text = kIPv6Inputs[index++ & (kIPv6Inputs.size() - 1u)];
@@ -28,7 +28,7 @@ static void BM_ParseIPv6(benchmark::State& state) {
     benchmark::DoNotOptimize(result);
   }
 }
-BENCHMARK(BM_ParseIPv6);
+BENCHMARK(BM_VipaIPv6);
 
 static void BM_InetPtonIPv6(benchmark::State& state) {
   std::size_t index = 0;
