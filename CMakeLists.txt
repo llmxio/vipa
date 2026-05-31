@@ -15,6 +15,17 @@ target_include_directories(vipa INTERFACE
 
 target_compile_features(vipa INTERFACE cxx_std_23)
 
+option(VIPA_ENABLE_AVX2 "Enable AVX2 parser code paths for VIPA consumers" ON)
+if(VIPA_ENABLE_AVX2)
+  target_compile_options(vipa INTERFACE
+    $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>>:-mavx2>
+    $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:MSVC>>:/arch:AVX2>
+  )
+  target_compile_definitions(vipa INTERFACE VIPA_USE_AVX2=1)
+else()
+  target_compile_definitions(vipa INTERFACE VIPA_USE_AVX2=0)
+endif()
+
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/vipa"
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
@@ -64,8 +75,8 @@ if(BUILD_TESTING)
   add_subdirectory(tests)
 endif()
 
-option(BUILD_BENCHMARKING "Enable benchmark targets" OFF)
-if(BUILD_BENCHMARKING)
+option(BUILD_BENCHMARKS "Enable benchmark targets" OFF)
+if(BUILD_BENCHMARKS)
   add_subdirectory(benchmarks)
 endif()
 

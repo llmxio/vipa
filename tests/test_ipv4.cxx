@@ -19,7 +19,15 @@ TEST(IPv4ParserTest, RejectsMalformedInput) {
   EXPECT_FALSE(parse_ipv4("192.168.0"));
   EXPECT_FALSE(parse_ipv4("192.168.0.1."));
   EXPECT_FALSE(parse_ipv4("192..0.1"));
+  EXPECT_FALSE(parse_ipv4(".192.168.0.1"));
   EXPECT_FALSE(parse_ipv4("256.0.0.1"));
   EXPECT_FALSE(parse_ipv4("1.2.3.999"));
   EXPECT_FALSE(parse_ipv4("1.2.3.a"));
+}
+
+TEST(IPv4ParserTest, RejectsLeadingZeroOctets) {
+  EXPECT_FALSE(parse_ipv4("01.2.3.4"));
+  EXPECT_FALSE(parse_ipv4("1.02.3.4"));
+  EXPECT_FALSE(parse_ipv4("1.2.003.4"));
+  EXPECT_FALSE(parse_ipv4("1.2.3.04"));
 }

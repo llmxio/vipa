@@ -11,9 +11,12 @@ namespace and ships as an installable CMake interface target.
 - Header-only C++23 library
 - Strict IPv4 dotted-decimal parser
 - IPv6 parser with compressed forms and IPv4-embedded tails
-- SIMD-assisted character classification where SSE2 is available
+- AVX2-assisted parser scans with portable scalar fallbacks
 - Portable scalar fallback for other targets
 - GoogleTest-based parser tests
+
+AVX2 compile options are enabled by default through the `llmx::vipa` CMake
+target. Configure with `-DVIPA_ENABLE_AVX2=OFF` to force the scalar fallback.
 
 ## Using VIPA from CMake
 
