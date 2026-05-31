@@ -26,19 +26,25 @@ namespace llmx::vipa {
 
 namespace detail {
 
+/** @brief Character-position masks collected while scanning IPv6 text. */
 struct IPv6Scan {
+  /** Bit set for each colon position in the input. */
   uint64_t colon_mask{};
+  /** Bit set for each dot position in the input. */
   uint64_t dot_mask{};
 };
 
+/** @brief Return a low-bit mask with `len` bits set. */
 inline constexpr auto low_mask64(std::size_t len) noexcept -> uint64_t {
   return len == 64 ? 0xFFFF'FFFF'FFFF'FFFFull : ((uint64_t{1} << len) - 1u);
 }
 
+/** @brief Return a 32-bit low-bit mask with `len` bits set. */
 inline constexpr auto low_mask32(std::size_t len) noexcept -> uint32_t {
   return len == 32 ? 0xFFFF'FFFFu : ((uint32_t{1} << len) - 1u);
 }
 
+/** @brief Return a mask covering `[begin, end)` bit positions. */
 inline constexpr auto range_mask64(std::size_t begin, std::size_t end) noexcept
     -> uint64_t {
   if (begin >= end)
@@ -47,10 +53,12 @@ inline constexpr auto range_mask64(std::size_t begin, std::size_t end) noexcept
 }
 
 #if VIPA_USE_AVX2
+/** @brief Classify one 32-byte IPv6 text lane with AVX2. */
 inline auto classify_ipv6_avx2(__m256i chunk, uint32_t text_mask,
                                uint32_t& colon_mask,
                                uint32_t& dot_mask) noexcept -> bool;
 
+/** @brief Scan one full 32-byte IPv6 text lane with AVX2. */
 inline auto scan_ipv6_half_avx2(const char* bytes, uint32_t text_mask,
                                 uint32_t& colon_mask,
                                 uint32_t& dot_mask) noexcept -> bool {
@@ -59,6 +67,8 @@ inline auto scan_ipv6_half_avx2(const char* bytes, uint32_t text_mask,
   return classify_ipv6_avx2(chunk, text_mask, colon_mask, dot_mask);
 }
 
+/** @brief Classify IPv6 text bytes and return colon, dot, and validity masks.
+ */
 inline auto classify_ipv6_avx2(__m256i chunk, uint32_t text_mask,
                                uint32_t& colon_mask,
                                uint32_t& dot_mask) noexcept -> bool {
@@ -94,6 +104,7 @@ inline auto classify_ipv6_avx2(__m256i chunk, uint32_t text_mask,
   return valid_mask == text_mask;
 }
 
+/** @brief Scan a partial IPv6 segment with scalar bounds-safe code. */
 inline auto scan_ipv6_tail_scalar(const char* bytes, std::size_t begin,
                                   std::size_t end, std::size_t offset,
                                   IPv6Scan& scan) noexcept -> bool {
@@ -114,6 +125,12 @@ inline auto scan_ipv6_tail_scalar(const char* bytes, std::size_t begin,
   return true;
 }
 
+/**
+ * @brief Scan up to 32 IPv6 text bytes with AVX2 masked loads.
+ *
+ * Complete 32-bit words are loaded with a mask and the remaining bytes are
+ * handled scalarly, so the scanner does not read past the caller's buffer.
+ */
 inline auto scan_ipv6_segment_avx2(const char* bytes, std::size_t len,
                                    std::size_t offset, IPv6Scan& scan) noexcept
     -> bool {
@@ -141,6 +158,8 @@ inline auto scan_ipv6_segment_avx2(const char* bytes, std::size_t len,
   return scan_ipv6_tail_scalar(bytes, full_bytes, len, offset, scan);
 }
 
+/** @brief Scan IPv6 text with AVX2 lane classification and scalar tail
+ * handling. */
 inline auto scan_ipv6_avx2(std::string_view text, IPv6Scan& scan) noexcept
     -> bool {
   uint32_t colon_lo = 0;
@@ -157,6 +176,7 @@ inline auto scan_ipv6_avx2(std::string_view text, IPv6Scan& scan) noexcept
 }
 #endif
 
+/** @brief Scan IPv6 text with portable scalar character classification. */
 inline auto scan_ipv6_scalar(std::string_view text, IPv6Scan& scan) noexcept
     -> bool {
   for (std::size_t i = 0; i < text.size(); ++i) {
@@ -176,6 +196,7 @@ inline auto scan_ipv6_scalar(std::string_view text, IPv6Scan& scan) noexcept
   return true;
 }
 
+/** @brief Scan IPv6 text with the best enabled implementation. */
 inline auto scan_ipv6(std::string_view text, IPv6Scan& scan) noexcept -> bool {
 #if VIPA_USE_AVX2
   return scan_ipv6_avx2(text, scan);
@@ -184,6 +205,7 @@ inline auto scan_ipv6(std::string_view text, IPv6Scan& scan) noexcept -> bool {
 #endif
 }
 
+/** @brief Parse one 1-4 digit IPv6 hexadecimal group. */
 inline bool parse_ipv6_piece(std::string_view piece, uint16_t& value) noexcept {
   if (piece.empty() || piece.size() > 4)
     return false;
@@ -199,6 +221,7 @@ inline bool parse_ipv6_piece(std::string_view piece, uint16_t& value) noexcept {
   return true;
 }
 
+/** @brief Find the next colon bit in `[begin, end)`. */
 inline auto find_next_colon(IPv6Scan scan, std::size_t begin,
                             std::size_t end) noexcept -> std::size_t {
   const auto mask = scan.colon_mask & range_mask64(begin, end);
@@ -207,6 +230,7 @@ inline auto find_next_colon(IPv6Scan scan, std::size_t begin,
   return static_cast<std::size_t>(std::countr_zero(mask));
 }
 
+/** @brief Append an embedded IPv4 tail as two IPv6 16-bit groups. */
 inline auto append_ipv4_tail(std::array<uint16_t, 8>& groups, uint8_t& count,
                              std::string_view tail) noexcept -> bool {
   const auto ipv4 = parse_ipv4(tail);
@@ -220,6 +244,12 @@ inline auto append_ipv4_tail(std::array<uint16_t, 8>& groups, uint8_t& count,
   return true;
 }
 
+/**
+ * @brief Parse one side of an IPv6 address around optional `::` compression.
+ *
+ * The side may end with an IPv4 dotted-decimal tail, which occupies two IPv6
+ * groups.
+ */
 inline auto parse_ipv6_side(std::string_view text, std::size_t begin,
                             std::size_t end, IPv6Scan scan,
                             std::array<uint16_t, 8>& groups,
@@ -250,6 +280,16 @@ inline auto parse_ipv6_side(std::string_view text, std::size_t begin,
 
 } // namespace detail
 
+/**
+ * @brief Parse IPv6 text into sixteen network-order bytes.
+ *
+ * Supports full and `::`-compressed forms, including IPv4-embedded tails.
+ * Rejects malformed text, multiple compression markers, invalid hexadecimal
+ * groups, overlong addresses, and invalid IPv4 tails.
+ *
+ * @param text IPv6 address text.
+ * @return Parsed address bytes, or `std::nullopt` for malformed input.
+ */
 inline auto parse_ipv6(std::string_view text) noexcept
     -> std::optional<IPv6Address> {
   if (text.empty() || text.size() > 45) {

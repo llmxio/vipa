@@ -10,13 +10,16 @@
 
 namespace llmx::vipa::detail {
 
+/** @brief Return true when `c` is an ASCII decimal digit. */
 constexpr bool is_dec_digit(char c) noexcept { return c >= '0' && c <= '9'; }
 
+/** @brief Return true when `c` is an ASCII hexadecimal digit. */
 constexpr bool is_hex_digit(char c) noexcept {
   return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') ||
          (c >= 'A' && c <= 'F');
 }
 
+/** @brief Convert an ASCII hexadecimal digit to its numeric value. */
 constexpr auto hex_value(char c) noexcept -> uint8_t {
   if (c >= '0' && c <= '9')
     return static_cast<uint8_t>(c - '0');
@@ -25,6 +28,7 @@ constexpr auto hex_value(char c) noexcept -> uint8_t {
   return static_cast<uint8_t>(10 + c - 'A');
 }
 
+/** @brief Return true when text contains only IPv4 digits and dots. */
 inline bool contains_only_ipv4_chars(std::string_view text) noexcept {
 #if defined(__SSE2__)
   const auto dot = _mm_set1_epi8('.');
@@ -58,6 +62,8 @@ inline bool contains_only_ipv4_chars(std::string_view text) noexcept {
 #endif
 }
 
+/** @brief Return true when text contains only IPv6 hex digits, colons, and
+ * dots. */
 inline bool contains_only_ipv6_chars(std::string_view text) noexcept {
   for (char c : text) {
     if (!is_hex_digit(c) && c != ':' && c != '.')

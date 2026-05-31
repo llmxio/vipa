@@ -23,11 +23,19 @@ namespace llmx::vipa {
 
 namespace detail {
 
+/** @brief Character-position masks collected while scanning IPv4 text. */
 struct IPv4Scan {
+  /** Bit set for each dot position in the input. */
   uint32_t dot_mask{};
 };
 
 #if VIPA_USE_AVX2
+/**
+ * @brief Scan IPv4 text for dot positions using AVX2 masked loads.
+ *
+ * The scanner only loads complete 32-bit words covered by the input and handles
+ * the remaining tail scalarly, so it does not read past the string view.
+ */
 inline auto scan_ipv4_avx2(std::string_view text, IPv4Scan& scan) noexcept
     -> bool {
   const auto full_words = text.size() / 4u;
@@ -49,6 +57,7 @@ inline auto scan_ipv4_avx2(std::string_view text, IPv4Scan& scan) noexcept
 }
 #endif
 
+/** @brief Scan IPv4 text for dot positions with portable scalar code. */
 inline auto scan_ipv4_scalar(std::string_view text, IPv4Scan& scan) noexcept
     -> bool {
   for (std::size_t i = 0; i < text.size(); ++i) {
@@ -62,6 +71,7 @@ inline auto scan_ipv4_scalar(std::string_view text, IPv4Scan& scan) noexcept
   return true;
 }
 
+/** @brief Scan IPv4 text with the best enabled implementation. */
 inline auto scan_ipv4(std::string_view text, IPv4Scan& scan) noexcept -> bool {
 #if VIPA_USE_AVX2
   return scan_ipv4_avx2(text, scan);
@@ -70,6 +80,12 @@ inline auto scan_ipv4(std::string_view text, IPv4Scan& scan) noexcept -> bool {
 #endif
 }
 
+/**
+ * @brief Parse IPv4 bytes after dot positions have been collected.
+ *
+ * Rejects empty octets, octets longer than three digits, leading-zero octets,
+ * non-digit characters, and values above 255.
+ */
 inline auto parse_ipv4_from_scan(std::string_view text, IPv4Scan scan) noexcept
     -> std::optional<IPv4Address> {
   if (std::popcount(scan.dot_mask) != 3) {
@@ -116,6 +132,15 @@ inline auto parse_ipv4_from_scan(std::string_view text, IPv4Scan scan) noexcept
 
 } // namespace detail
 
+/**
+ * @brief Parse strict dotted-decimal IPv4 text.
+ *
+ * Accepted addresses contain exactly four decimal octets separated by dots.
+ * Leading-zero multi-digit octets and values above 255 are rejected.
+ *
+ * @param text IPv4 address text.
+ * @return Parsed address bytes, or `std::nullopt` for malformed input.
+ */
 inline auto parse_ipv4(std::string_view text) noexcept
     -> std::optional<IPv4Address> {
   if (text.empty() || text.size() > 15) {
@@ -129,6 +154,11 @@ inline auto parse_ipv4(std::string_view text) noexcept
   return detail::parse_ipv4_from_scan(text, scan);
 }
 
+/**
+ * @brief Parse a fixed character array as IPv4 text.
+ *
+ * A trailing NUL byte is excluded from the parsed view when present.
+ */
 template <std::size_t N>
 inline auto parse_ipv4(const char (&text)[N]) noexcept
     -> std::optional<IPv4Address> {
