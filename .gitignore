@@ -21,6 +21,8 @@ install_manifest.txt
 *.gcno
 coverage/
 *.prof
+*.json
+*.png
 
 __pycache__/
 *.py[cod]
