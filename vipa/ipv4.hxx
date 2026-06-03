@@ -6,18 +6,7 @@
 #include <string_view>
 
 #include "address.hxx"
-
-#if !defined(VIPA_USE_AVX2) && defined(__AVX2__)
-#define VIPA_USE_AVX2 1
-#endif
-
-#if !defined(VIPA_USE_AVX2)
-#define VIPA_USE_AVX2 0
-#endif
-
-#if VIPA_USE_AVX2
-#include <immintrin.h>
-#endif
+#include "detail/simd.hxx"
 
 namespace llmx::vipa {
 
@@ -61,12 +50,8 @@ inline auto scan_ipv4_avx2(std::string_view text, IPv4Scan& scan) noexcept
 inline auto scan_ipv4_scalar(std::string_view text, IPv4Scan& scan) noexcept
     -> bool {
   for (std::size_t i = 0; i < text.size(); ++i) {
-    const auto bit = uint32_t{1} << i;
-    const char c = text[i];
-    if (c == '.') {
-      scan.dot_mask |= bit;
-      continue;
-    }
+    if (text[i] == '.')
+      scan.dot_mask |= uint32_t{1} << i;
   }
   return true;
 }
@@ -141,7 +126,7 @@ inline auto parse_ipv4_from_scan(std::string_view text, IPv4Scan scan) noexcept
  * @param text IPv4 address text.
  * @return Parsed address bytes, or `std::nullopt` for malformed input.
  */
-inline auto parse_ipv4(std::string_view text) noexcept
+[[nodiscard]] inline auto parse_ipv4(std::string_view text) noexcept
     -> std::optional<IPv4Address> {
   if (text.empty() || text.size() > 15) {
     return std::nullopt;
@@ -160,7 +145,7 @@ inline auto parse_ipv4(std::string_view text) noexcept
  * A trailing NUL byte is excluded from the parsed view when present.
  */
 template <std::size_t N>
-inline auto parse_ipv4(const char (&text)[N]) noexcept
+[[nodiscard]] inline auto parse_ipv4(const char (&text)[N]) noexcept
     -> std::optional<IPv4Address> {
   static_assert(N > 0);
   const std::size_t length = text[N - 1] == '\0' ? N - 1 : N;

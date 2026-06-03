@@ -18,7 +18,7 @@ namespace llmx::vipa {
  * @param text Address text to parse.
  * @return Parsed address and family, or `std::nullopt` for malformed input.
  */
-inline auto parse_address(std::string_view text) noexcept
+[[nodiscard]] inline auto parse_address(std::string_view text) noexcept
     -> std::optional<ParseResult> {
   if (auto ipv4 = parse_ipv4(text)) {
     return ParseResult{.address = *ipv4, .family = AddressFamily::IPv4};

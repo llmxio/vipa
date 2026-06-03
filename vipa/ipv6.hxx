@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <bit>
 #include <cstdint>
@@ -8,19 +9,8 @@
 
 #include "address.hxx"
 #include "detail/classify.hxx"
+#include "detail/simd.hxx"
 #include "ipv4.hxx"
-
-#if !defined(VIPA_USE_AVX2) && defined(__AVX2__)
-#define VIPA_USE_AVX2 1
-#endif
-
-#if !defined(VIPA_USE_AVX2)
-#define VIPA_USE_AVX2 0
-#endif
-
-#if VIPA_USE_AVX2
-#include <immintrin.h>
-#endif
 
 namespace llmx::vipa {
 
@@ -290,7 +280,7 @@ inline auto parse_ipv6_side(std::string_view text, std::size_t begin,
  * @param text IPv6 address text.
  * @return Parsed address bytes, or `std::nullopt` for malformed input.
  */
-inline auto parse_ipv6(std::string_view text) noexcept
+[[nodiscard]] inline auto parse_ipv6(std::string_view text) noexcept
     -> std::optional<IPv6Address> {
   if (text.empty() || text.size() > 45) {
     return std::nullopt;
@@ -332,15 +322,13 @@ inline auto parse_ipv6(std::string_view text) noexcept
   }
 
   std::array<uint16_t, 8> groups{};
-  uint8_t out = 0;
-  for (uint8_t i = 0; i < head_count; ++i)
-    groups[out++] = head[i];
+  auto it = groups.begin();
+  it = std::copy(head.begin(), head.begin() + head_count, it);
 
   if (compress_at) {
-    const uint8_t zeros = static_cast<uint8_t>(8 - head_count - tail_count);
-    out = static_cast<uint8_t>(out + zeros);
-    for (uint8_t i = 0; i < tail_count; ++i)
-      groups[out++] = tail[i];
+    const auto zeros = 8 - head_count - tail_count;
+    it = std::fill_n(it, zeros, uint16_t{0});
+    it = std::copy(tail.begin(), tail.begin() + tail_count, it);
   }
 
   IPv6Address result{};
